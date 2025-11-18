@@ -1,0 +1,8 @@
+[Unit]
+Description=Automatic Backup Service for Profile %i
+
+[Service]
+Type=oneshot
+ExecStart=ROOT_PATH/bin/borg-wrapper.sh -p %i -mc
+WorkingDirectory=ROOT_PATH
+
