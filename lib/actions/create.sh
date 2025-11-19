@@ -6,7 +6,7 @@ perform_backup() {
     return 1
   fi
 
-  local ARCHIVE_PREFIX="${PROFILE_NAME}-$(hostname)"
+  local ARCHIVE_PREFIX="${PROFILE_NAME}-$(hostname)-$(date --iso-8601)"
 
   if [[ ${#BACKUP_PATHS[@]} -eq 0 ]]; then
     echo "$BACKUP_PATHS"
@@ -55,14 +55,14 @@ perform_backup() {
   info "Creating archive: $ARCHIVE_PREFIX"
 
   borg create \
-  --info \
-  --stats \
-  --progress \
-  --compression zstd,3 \
-  --one-file-system \
-  "${BORG_REPO}::${ARCHIVE_PREFIX}" \
-  "${EXCLUDE_OPTS}" \
-  "${VALID_PATHS[@]}" >> "${LOG_FILE}" 2>&1
+    --info \
+    --stats \
+    --progress \
+    --compression zstd,3 \
+    --one-file-system \
+    "${BORG_REPO}::${ARCHIVE_PREFIX}" \
+    "${EXCLUDE_OPTS}" \
+    "${VALID_PATHS[@]}" >> "$LOG_FILE" 2>&1
 
   local exit_code=$?
   if [[ $exit_code -eq 0 ]]; then

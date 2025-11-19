@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_DIRECTORY="$HOME/.local/share/borg-backup/script.log"
+LOG_DIRECTORY="/var/log/borgbackup-script"
 LOG_FILE="$LOG_DIRECTORY/script.log"
 
 if [[ ! -d "$LOG_DIRECTORY" ]]; then

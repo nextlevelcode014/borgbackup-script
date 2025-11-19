@@ -17,6 +17,7 @@ source "$PROJECT_ROOT/lib/utils/setup.sh"
 
 # TODO: check if order 
 source "$PROJECT_ROOT/lib/actions/mount.sh"
+source "$PROJECT_ROOT/lib/actions/umount.sh"
 source "$PROJECT_ROOT/lib/actions/create.sh"
 source "$PROJECT_ROOT/lib/actions/prune.sh"
 source "$PROJECT_ROOT/lib/actions/compact.sh"
@@ -48,7 +49,9 @@ while getopts ":p:cPCihlrmws" opt; do
     m)
       check_profile_set
 
-      if ! perform_mount; then
+      if perform_mount; then
+        trap perform_umount EXIT
+      else
         error "Failed to mount disk"
         exit 1
       fi

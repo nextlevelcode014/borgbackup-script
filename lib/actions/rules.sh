@@ -51,7 +51,8 @@ perform_rules() {
   # ---------------------------------------------------------
   # Generating systemd services
   # ---------------------------------------------------------
-  local SERVICE_FILE="$SERVICE_DIR/automatic-backup-$PROFILE_NAME@.service"
+  local SERVICE_FILENAME="automatic-backup-$PROFILE_NAME@$PROFILE_NAME.service"
+  local SERVICE_FILE="$SERVICE_DIR/$SERVICE_FILENAME"
   local SERVICE_TEMPLATE="$CONF_DIR/templates/service"
 
   if [[ ! -f "$SERVICE_TEMPLATE" ]]; then
@@ -71,7 +72,7 @@ perform_rules() {
   fi
 
   local SYS_RULES_LINK="/etc/udev/rules.d/80-backup-$PROFILE_NAME.rules"
-  local SYS_SERVICE_LINK="/etc/systemd/system/automatic-backup-$PROFILE_NAME@.service"
+  local SYS_SERVICE_LINK="/etc/systemd/system/$SERVICE_FILENAME"
 
   echo ""
   echo "========================================================"

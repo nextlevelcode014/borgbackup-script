@@ -1,7 +1,7 @@
 #!/bin/bash
 
 perform_mount() {
-  local DISK_FILE="$CONF_DIR/whitelist/$PROFILE_NAME.disks"
+  local DISKS="$PROJECT_ROOT/config/whitelist/$PROFILE_NAME.disks"
 
   for uuid in $(lsblk --noheadings --list --output uuid)
   do
@@ -18,8 +18,23 @@ perform_mount() {
 
   info "Disk $uuid is a backup disk"
   partition_path=/dev/disk/by-uuid/$uuid
+  echo "$partition_path"
   MOUNTPOINT="$MOUNT_BASE/$PROFILE_NAME"
-  findmnt $MOUNTPOINT >/dev/null || mount $partition_path $MOUNTPOINT
-  info "Disk $uuid mounted in $MOUNTPOINT"
 
+  # TODO: cache
+  if [[ ! -d "$MOUNTPOINT" ]]; then
+    mkdir -p "$MOUNTPOINT"
+  fi
+
+  findmnt $MOUNTPOINT >/dev/null || mount $partition_path $MOUNTPOINT >> "$LOG_FILE" 2>&1
+
+  local exit_code=$?
+
+  if [[ $exit_code -eq 0 ]]; then
+    info "Disk $uuid mounted in $MOUNTPOINT"
+    return 0
+  else
+    error "Mount disk failed with code: $exit_code"
+    return $exit_code
+  fi
 }
