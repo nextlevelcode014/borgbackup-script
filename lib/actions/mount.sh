@@ -18,7 +18,6 @@ perform_mount() {
 
   info "Disk $uuid is a backup disk"
   partition_path=/dev/disk/by-uuid/$uuid
-  echo "$partition_path"
   MOUNTPOINT="$MOUNT_BASE/$PROFILE_NAME"
 
   # TODO: cache

@@ -16,7 +16,7 @@ perform_rules() {
   # if the UUID is already there.
   if [[ ! -f "$DISK_FILE" ]]; then
     error "File doesn't exist: $DISK_FILE"
-    echo "Create the $DISK_FILE file and add the disk UUIDs"
+    echo "Create the $PROFILE_NAME.disks file and add the disk UUIDs"
     return 1
   fi
 
@@ -60,6 +60,7 @@ perform_rules() {
       return 1
   fi
 
+  # TODO: flag to regenerate
   if [[ ! -f "$SERVICE_FILE" ]]; then
     info "Generating Systemd Service file..."
 
@@ -68,7 +69,12 @@ perform_rules() {
 
     info "Service generated at: $SERVICE_FILE"
   else
-    info "Service file already exists. Skipping."
+    info "Regenerating Systemd Service file..."
+
+    sed -e "s|ROOT_PATH|$PROJECT_ROOT|g" \
+        "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
+
+    info "Service regenerated at: $SERVICE_FILE"
   fi
 
   local SYS_RULES_LINK="/etc/udev/rules.d/80-backup-$PROFILE_NAME.rules"

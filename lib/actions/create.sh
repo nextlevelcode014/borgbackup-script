@@ -1,12 +1,20 @@
 #!/bin/bash
 
+source "$PROJECT_ROOT/lib/utils/cooldown.sh"
+
 perform_backup() {
+  if ! check_cooldown; then
+    return 1
+  fi
+
+  info "Starting backup creation"
+
   if [[ -z "${PROFILE_NAME:-}" ]]; then
     error "No profile loaded"
     return 1
   fi
 
-  local ARCHIVE_PREFIX="${PROFILE_NAME}-$(hostname)-$(date --iso-8601)"
+  local ARCHIVE_PREFIX="${PROFILE_NAME}-$(hostname)-$(date +%Y-%m-%d_%Hh%M)"
 
   if [[ ${#BACKUP_PATHS[@]} -eq 0 ]]; then
     echo "$BACKUP_PATHS"
@@ -67,6 +75,7 @@ perform_backup() {
   local exit_code=$?
   if [[ $exit_code -eq 0 ]]; then
     info "Backup created successfully!"
+    update_last_run_timestamp
     return 0
   else
     erro "Backup failed with code: $exit_code"
