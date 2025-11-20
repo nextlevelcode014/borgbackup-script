@@ -26,7 +26,14 @@ source "$PROJECT_ROOT/lib/actions/show_help.sh"
 source "$PROJECT_ROOT/lib/actions/list_profiles.sh"
 source "$PROJECT_ROOT/lib/actions/load_profile.sh"
 source "$PROJECT_ROOT/lib/actions/show_profile_info.sh"
-source "$PROJECT_ROOT/lib/actions/mount_archive.sh"
+source "$PROJECT_ROOT/lib/actions/browser.sh"
+
+PROFILE_NAME=""
+
+if [[ -n "$1" ]] && [[ "$1" != -* ]]; then
+  PROFILE_NAME=$1
+  shift
+fi
 
 if [[ $# -eq 0 ]]; then
   error "No action specified"
@@ -34,107 +41,96 @@ if [[ $# -eq 0 ]]; then
   exit 1
 fi
 
-PROFILE_SET=false
-ACTION_TAKEN=false
+DO_MOUNT=false
+DO_CREATE=false
+DO_PRUNE=false
+DO_COMPACT=false
+DO_RULES=false
+DO_BROWSER=false
+DO_WIPE=false
 
-while getopts ":p:cPCihlrmMws" opt; do
+while getopts ":mcPCihlrBw" opt; do
   case $opt in
-    p)
-      if ! load_profile "${OPTARG}"; then
-        error "Failed to load profile"
-        exit 1
-      fi
-      PROFILE_SET=true
-      ;;
-    m)
-      check_profile_set
-
-      if perform_mount; then
-        trap perform_umount EXIT
-      else
-        exit 1
-      fi
-      ACTION_TAKEN=true
-      ;;
-    c)
-      check_profile_set
-      ACTION_TAKEN=true
-
-      if ! perform_backup; then
-        exit 1
-      fi
-      ;;
-    P)
-      check_profile_set
-      ACTION_TAKEN=true
-      if ! perform_prune; then
-        exit 1
-      fi
-      ;;
-    C)
-      check_profile_set
-      ACTION_TAKEN=true
-      if ! perform_compact; then
-        exit 1
-      fi
-      ;;
-    M)
-      if ! perform_mount_archive; then
-        exit 1
-      fi
-
-      exit 0
-      ;;
-    r)
-      check_profile_set
-      ACTION_TAKEN=true
-      info "Setting rules"
-      if perform_rules; then
-        info "Rules setted successfully!"
-      else
-        error "Rules failed"
-        exit 1
-      fi
-      ;;
-    w)
-      check_profile_set
-      ACTION_TAKEN=true
-      info "Wiping rules"
-      if perform_wipe; then
-        info "Rules wiped successfully!"
-      else
-        error "Wiped failed"
-        exit 1
-      fi
-      ;;
+    m) DO_MOUNT=true ;;
+    c) DO_CREATE=true ;;
+    P) DO_PRUNE=true ;;
+    C) DO_COMPACT=true ;;
+    r) DO_RULES=true ;;
+    m) DO_BROWSER=true ;;
+    w) DO_WIPE=true ;;
     i)
-      check_profile_set
-      show_profile_info
-      exit 0
-      ;;
-    l)
-      list_profiles
-      exit 0
-      ;;
-    h)
-      show_help
-      exit 0
-      ;;
-    *)
-      echo "Error: Invalid option" >&2
-      exit 1
-      ;;
+      if [[ -z "$PROFILE_NAME" ]]; then
+         echo "Error: You must specify a profile for info. Usage: $(basename "$0") PROFILE -i"
+         exit 1
+       fi
+       if ! load_profile "${PROFILE_NAME}"; then
+         exit 1;
+       fi
+       show_profile_info
+       exit 0
+       ;;
+    l) list_profiles; exit 0 ;;
+    h) show_help; exit 0 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
   esac
 done
 
-if ! $PROFILE_SET; then
-  error "Profile (-p) is required!"
+if [[ -z "$PROFILE_NAME" ]]; then
+  echo "Error: Profile name missing."
+  echo "Usage: $(basename "$0") <PROFILE_NAME> [OPTIONS]"
+  echo "Try '$(basename "$0") -l' to list available profiles."
   exit 1
 fi
 
-if ! $ACTION_TAKEN; then
-  error "No action specified."
-  exit 1
+if ! load_profile "${PROFILE_NAME}"; then
+   echo "Failed to load profile: $PROFILE_NAME"
+   exit 1
+fi
+
+if $DO_WIPE; then
+  if ! perform_wipe; then
+    error "Wiped failed"
+    exit 1
+  fi
+fi
+
+if $DO_RULES; then
+  if ! perform_rules; then
+    error "Rules failed"
+    exit 1
+  fi
+fi
+
+if $DO_MOUNT; then
+  if ! perform_mount; then
+    exit 1
+  fi
+
+  trap perform_umount EXIT
+fi
+
+if $DO_CREATE; then
+  if ! perform_backup; then
+    exit 1
+  fi
+fi
+
+if $DO_PRUNE; then
+  if ! perform_prune; then
+    exit 1
+  fi
+fi
+
+if $DO_COMPACT; then
+  if ! perform_compact; then
+    exit 1
+  fi
+fi
+
+if $DO_BROWSER; then
+  if ! perform_browser; then
+    exit 1
+  fi
 fi
 
 info "All operations finished."

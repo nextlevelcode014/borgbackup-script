@@ -1,10 +1,7 @@
 #!/bin/bash
 
 list_profiles() {
-  if [[ ! -d "${PROFILES_DIR}" ]]; then
-    echo "Perfils directory not found: $PROFILES_DIR"
-    return 1
-  fi
+  PROFILES_DIR="$PROJECT_ROOT/config/profiles"
 
   echo "Avaliable profiles"
   echo "=================="
@@ -24,7 +21,7 @@ list_profiles() {
   done
 
   if ! $found; then
-    echo "  Nenhum perfil encontrado."
+    echo "  No profile found"
     echo ""
     echo "Create profiles in: ${PROFILES_DIR}/"
   fi

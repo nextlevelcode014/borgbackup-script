@@ -1,6 +1,6 @@
 #!/bin/bash
 
-perform_mount_archive() {
+perform_browser() {
   local MOUNT_DIR="/home/nextlevelcode/Backup/BorgMount-$PROFILE_NAME"
 
   local USER_ID="${SUDO_UID:-$(id -u)}"
